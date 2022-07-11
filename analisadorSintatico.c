@@ -11,7 +11,10 @@ enum tokenType {
     OPENCHAVES,
     CLOSECHAVES,
     OPENCOLCHETE,
-    CLOSECOLCHETE
+    CLOSECOLCHETE,
+    VIRGULA,
+    PONTOVIRGULA,
+    NUM
 };
 typedef struct
 {
@@ -87,19 +90,70 @@ int declarationListLinha(Token* tokens){
     return i;
 }
 
-int declaration(Token* tokens){
+// int declaration(Token* tokens){
+//     if(typeSpec(tokens)){
+//         consomeToken(tokens);
+//         if(currToken.tipo == ID){
+//             consomeToken(tokens);
+//             if(currToken.tipo == OPENPAREN){ // is functino
+//                 // return 1; //funDec(tokens);
+//                 if(params(tokens)){
+//                     consomeToken(tokens);
+//                     if(currToken.tipo == CLOSEPAREN){
+//                         // compound-stmt
+//                         return 1;
+//                     }        
+//                 }
+//             } else {
+//                 return 1; //numVarDec(tokens);
+//             }
+//         }
+//     }
+//     return 0;
+// }
+
+int declaration(Token * tokens){
+    if(varDeclaration){
+        return 1;
+    }
+    if(funDec){
+        return 1;
+    }
+}
+
+int varDeclaration(Token * tokens){
     if(typeSpec(tokens)){
         consomeToken(tokens);
         if(currToken.tipo == ID){
             consomeToken(tokens);
-            if(currToken.tipo == OPENPAREN){ // is functino
-                return 1; //funDec(tokens);
-            } else {
-                return 1; //numVarDec(tokens);
+            if(numVarDec){
+                if(currToken.tipo == PONTOVIRGULA){
+                    consomeToken(tokens);
+                }
             }
         }
-    }
-    return 0;
+    }   
+}
+
+
+int numVarDec(Token * tokens){
+    if(currToken.tipo == OPENCOLCHETE){
+        consomeToken(tokens);
+        if(currToken.tipo == NUM){
+            consomeToken(tokens);
+            if(currToken.tipo == CLOSECOLCHETE){
+                consomeToken(tokens);
+                return 1;
+                
+            }
+        }
+    }   
+    if(currToken.tipo == EMPTY){
+        consomeToken(tokens);
+        return 1;
+                
+    }           
+
 }
 
 int typeSpec(Token* tokens){
@@ -123,6 +177,175 @@ int funDec(Token * tokens){
     return 0;
 }
 
+int params(Token * tokens){
+    if (paramList(tokens))
+    {
+        return 1;
+    } 
+
+    if (currToken.tipo == VOID){
+        return 1;
+    }
+    
+}
+
+
+int paramList(Token * tokens){
+    if (param(tokens)){
+        consomeToken(tokens);
+        if (paramListLinha(tokens))
+        {
+            return 1;
+        }
+    }
+}
+
+int paramListLinha(Token * tokens){
+    if(param(tokens)){
+        return 1;
+    }
+
+    if (currToken.tipo == VIRGULA){
+        if(param(tokens)){
+            consomeToken(tokens);
+            if (paramListLinha(tokens)){
+                return 1;
+            }
+        }
+    }
+
+    if(currToken.tipo == EMPTY){
+        return 1;
+    }
+
+}
+
+int param(Token * tokens){
+    if (typeSpec(tokens)){
+        if(currToken.tipo == ID){
+            consomeToken(tokens);
+            if (paramLinha){
+                return 1;
+            }
+        }
+    }
+}
+
+int paramLinha(Token * tokens){
+    if(currToken.tipo == OPENCOLCHETE){
+        consomeToken(tokens);
+        if(currToken.tipo == CLOSECOLCHETE){
+            consomeToken(tokens);
+            return 1;
+        }
+    }
+
+    if(currToken.tipo == EMPTY){
+        consomeToken(tokens);
+        return 1;
+    }
+
+}
+
+int compoundStmt(Token * tokens){
+    if(currToken.tipo == OPENCHAVES){
+        consomeToken(tokens);
+        if (localDec(tokens)){
+            if(localDec(tokens)){
+                if(stmtList){
+                    if (currToken.tipo==CLOSECHAVES)
+                    {
+                        return 1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+int localDec(Token * tokens){
+    if (localDecLinha)
+    {
+        return 1;
+    }
+}
+
+int localDecLinha(Token * tokens){
+
+    if(currToken.tipo == EMPTY){
+        consomeToken(tokens);
+        return 1
+    }
+
+    if (varDeclaration){
+        if(localDecLinha){
+            return 1;
+        }
+    }
+
+}
+
+
+int stmtList(Token * tokens){
+    
+    if (currToken.tipo == EMPTY)
+    {
+        return 1;
+    }
+    if (stmtListLinha)
+    {
+        return 1;
+    }
+}
+
+int stmtListLinha(Token * tokens){
+    if (currToken.tipo == EMPTY)
+    {
+        return 1;
+    }
+
+    if (stmt){
+        if (stmtListLinha) {
+            return 1;
+        }
+    }
+}
+
+int stmt(Token * tokens){
+    
+    if (expStmt)
+    {
+        return 1;
+    }
+    if (compoundStmt)
+    {
+        return 1;
+    }
+    if (selecStmt)
+    {
+        return 1;
+    }
+    if (iterationStmt)
+    {
+        return 1;
+    }
+    if (returnStmt)
+    {
+        return 1;
+    }
+}
+
+int expStmt(Token * tokens){
+    if (expression(tokens))
+    {
+        // PONTOVIRGULA
+    }
+
+    if(currToken.tipo == PONTOVIRGULA){
+        consomeToken(tokens);
+        return 1;
+    }
+}
 
 int main(int argc, char *argv[ ]){
 
